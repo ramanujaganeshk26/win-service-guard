@@ -55,6 +55,50 @@ Once built:
 dist\win-service-guard.exe --json
 ```
 
+## Usage Examples & Workflows
+
+### Example A: Generating and Reviewing a Remediation Script
+
+To safely inspect vulnerabilities and output a batch script without modifying the system state immediately:
+
+```cmd
+python win_service_guard.py --fix-script remediate.bat
+```
+
+Review the generated `remediate.bat` file to ensure all binPath configurations are correct before executing it with administrative privileges:
+
+```cmd
+remediate.bat
+```
+
+### Example B: Integrating into CI/CD Pipelines
+
+Use `--check` in automated compliance scans to fail pipelines if any unquoted paths are detected on target systems or container test images:
+
+```cmd
+python win_service_guard.py --check
+if %ERRORLEVEL% neq 0 (
+    echo [!] Unquoted service paths detected!
+    exit /b 1
+)
+```
+
+### Example C: Consuming JSON Output in Python
+
+Parse the JSON output programmatically for monitoring or ticketing integration:
+
+```python
+import subprocess
+import json
+
+result = subprocess.run(["python", "win_service_guard.py", "--json"], capture_output=True, text=True)
+data = json.loads(result.stdout)
+
+for service in data.get("services", []):
+    if service.get("vulnerable"):
+        print(f"Vulnerable Service: {service['name']} -> {service['path']}")
+```
+
 ## Running Tests
 
 ```bash
